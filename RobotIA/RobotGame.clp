@@ -12,27 +12,71 @@
 ;                                      ºGUÍAº                                
 ;
 ;  Voy a seguir la siguiente estructura para la info dinámica:     
-;  robotIA positionR ?xr ?yr positionBox ?$boxes positionEnemies ?$enemies ammo ?a lastmove ?mov level ?level
+;  robotIA positionR ?xr ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove ?mov level ?level
 ; 
 ;  positionR ?xr ?yr -> posicion del robot en formato [x,y]
-;  positionBox ?$boxes -> posiciones de las cajan en formato lista (bx [x,y] bx...)
-;  positionEnemies ?$enemies -> posiciones de los enemigos en formato lista (eny[x,y] eny...)
+;  positionBox $?boxes -> posiciones de las cajan en formato lista ([x,y] bx...)
+;  positionEnemies $?enemies -> posiciones de los enemigos en formato lista ([x,y] eny...)
 ;  ammo ?a -> munición
 ;
-;  la estructura lastmove es para evitar bucles :D
+;  la estructura lastmove es para evitar bucles :D [izq,drch]
 ;  level es para ir comprobando la profundidad
 ;
 ;
 ;  Estructura estática :
-;  max-depth ?proof
-;  stairs-location ?$stairs
-;  void-location ?$voids
+;  max-depth ?prof
+;  stairs-location $?stairs
+;  void-location $?voids
 ;  grid-dimension ?width ?heigh
 ;
 ;
 ;
 
 (defglobal ?*nod-gen* = 0)
+
+(defrule go_right
+        ?f<-(robotIA positionR ?xr ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove ?mov level ?level)
+        (max-depth ?prof)
+        (grid-dimension ?width ?heigh)
+        (void-location $?voids)
+
+        (test (< ?level ?prof))
+        (test (and (neq ?xr ?width) (neq ?mov izq)))
+        ;Con este test compruebo que la siguiente casilla no es un enemigo/vacio :D
+        (test (and (not (member$ (create$ (+ ?xr 1) ?yr) $?voids)) (not (member$ (create$ (+ ?xr 1) ?yr) $?enemies))))
+        =>
+        (assert (robotIA positionR (+ ?xr 1) ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove drch level (+ ?level 1)))
+        (bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule go_left
+        ?f<-(robotIA positionR ?xr ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove ?mov level ?level)
+        (max-depth ?prof)
+        (grid-dimension ?width ?heigh)
+        (void-location $?voids)
+
+        (test (< ?level ?prof))
+        (test (and (neq ?xr 1) (neq ?mov drch)))
+        ;Con este test compruebo que la siguiente casilla no es un enemigo/vacio aunque si viene de la derecha 
+        ;no haría falta, no se si habrá un enemigo al subir la escalera asi que lo compruebo de todas formas
+        (test (and (not (member$ (create$ (- ?xr 1) ?yr) $?voids)) (not (member$ (create$ (- ?xr 1) ?yr) $?enemies))))
+        =>
+        (assert (robotIA positionR (- ?xr 1) ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove izq level (+ ?level 1)))
+        (bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
+
+(defrule go_upstairs
+        ?f<-(robotIA positionR ?xr ?yr positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove ?mov level ?level)
+        (max-depth ?prof)
+        (stairs-location $?stairs)
+        (grid-dimension ?width ?heigh)
+
+        (test (< ?level ?prof))
+        (test (member$ (create$ ?xr ?yr) $?stairs))
+        =>
+        (assert (robotIA positionR ?xr (+ ?yr 1) positionBox $?boxes positionEnemies $?enemies ammo ?a lastmove null level (+ ?level 1)))
+        (bind ?*nod-gen* (+ ?*nod-gen* 1))
+)
 
 (deffunction inicio ()
         (reset)
@@ -44,11 +88,12 @@
                then    (set-strategy breadth)
                else   (set-strategy depth))
         (printout t " Ejecuta run para poner en marcha el programa " crlf)
-        ;;(assert (puzzle 2 8 3 1 6 4 7 0 5 nivel 0 movimiento nulo hecho 0))
-        (assert (robotIA positionR 1 1 positionBox b 4 3 b 11 2 positionEnemies eny 4 2 eny 8 2 ammo 2 lastmove null level 0))
+        ;DINAMIC
+        (assert (robotIA positionR 1 1 positionBox 4 3 11 2 positionEnemies 6 2 8 2 ammo 2 lastmove null level 0))
+        ;STATIC
         (assert (max-depth ?prof))
-        (assert (stairs-location 3 1 7 1 2 2))
-        (assert (void-location vd 5 2 3 3))
-        (assert (grid-dimension-depth 11 4))
+        (assert (stairs-location 3 1 7 1 2 2 2 1))
+        (assert (void-location 5 2 3 3))
+        (assert (grid-dimension 11 4))
         
 )
