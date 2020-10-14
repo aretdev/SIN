@@ -149,7 +149,7 @@
                else   (set-strategy depth))
         (printout t " Ejecuta run para poner en marcha el programa " crlf)
         ;DINAMIC
-        (assert (robotIA positionR 1 1 positionBox box 4 3 box 11 2 box 3 4 positionEnemies en 4 2 en 8 2 en 8 4  ammo 2 lastmove null level 0))
+        (assert (robotIA positionR 1 1 positionBox box 4 3 box 11 2 box 3 4 positionEnemies en 4 2 en 8 2 en 8 4 ammo 2 lastmove null level 0))
         ;STATIC
         (assert (max-depth ?prof))
         (assert (stairs-location st 3 1 st 7 1 st 2 2 st 1 3 st 7 3 st 11 3 st 10 2))
