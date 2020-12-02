@@ -1,0 +1,2 @@
+El ejecutable de perceptron chavales, los datos os los descargáis de la upv pero tened en cuenta que esto no clasifica bien 
+las funciones gausianas, asi que Gauss2D MAL , bueno mal no , que no puede hacer la diferenciación salu2
